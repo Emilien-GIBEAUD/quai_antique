@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\RestaurantRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -34,6 +36,17 @@ class Restaurant
 
     #[ORM\Column(type: Types::ARRAY)]
     private array $pmOpeningTime = [];
+
+    /**
+     * @var Collection<int, Picture>
+     */
+    #[ORM\OneToMany(targetEntity: Picture::class, mappedBy: 'Restaurant', orphanRemoval: true)]
+    private Collection $pictures;
+
+    public function __construct()
+    {
+        $this->pictures = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -120,6 +133,36 @@ class Restaurant
     public function setPmOpeningTime(array $pmOpeningTime): static
     {
         $this->pmOpeningTime = $pmOpeningTime;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Picture>
+     */
+    public function getPictures(): Collection
+    {
+        return $this->pictures;
+    }
+
+    public function addPicture(Picture $picture): static
+    {
+        if (!$this->pictures->contains($picture)) {
+            $this->pictures->add($picture);
+            $picture->setRestaurant($this);
+        }
+
+        return $this;
+    }
+
+    public function removePicture(Picture $picture): static
+    {
+        if ($this->pictures->removeElement($picture)) {
+            // set the owning side to null (unless already changed)
+            if ($picture->getRestaurant() === $this) {
+                $picture->setRestaurant(null);
+            }
+        }
 
         return $this;
     }
