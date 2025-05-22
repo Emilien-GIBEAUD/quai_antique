@@ -55,6 +55,13 @@ class Restaurant
     #[ORM\OneToMany(targetEntity: Menu::class, mappedBy: 'restaurant', orphanRemoval: true)]
     private Collection $menus;
 
+    #[ORM\Column(type: Types::GUID)]
+    private ?string $uuid = null;
+
+    #[ORM\OneToOne(inversedBy: 'restaurant', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
     public function __construct()
     {
         $this->pictures = new ArrayCollection();
@@ -237,6 +244,30 @@ class Restaurant
                 $menu->setRestaurant(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUuid(): ?string
+    {
+        return $this->uuid;
+    }
+
+    public function setUuid(string $uuid): static
+    {
+        $this->uuid = $uuid;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }
