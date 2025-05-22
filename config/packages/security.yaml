@@ -17,6 +17,8 @@ security:
             lazy: true
             provider: app_user_provider
             stateless: true
+            custom_authenticators:
+                - App\Security\ApiTokenAuthenticator
             json_login: 
                 # api_login is a route we will create below
                 check_path: app_api_login
