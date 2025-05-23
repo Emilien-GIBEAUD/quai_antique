@@ -133,6 +133,41 @@ final class RestaurantController extends AbstractController
     }
     
     #[route("/{id}", name: "edit", methods: "PUT")]
+    #[OA\Put(
+        path: '/api/restaurant/{id}',
+        summary: 'Modifier un restaurant par son id',
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'id du restaurant à modifier',
+                schema: new OA\Schema(type: 'integer', example: 1)
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            description: 'Données éventuelles du restaurant à modifier (supprimer les lignes inutiles, une "," doit être présente à la fin de chaque ligne sauf la dernière).',
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'nom du restaurant'),
+                    new OA\Property(property: 'description', type: 'string', example: 'description du restaurant'),
+                    new OA\Property(property: 'max_guest', type: 'integer', example: 60)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 204,
+                description: 'Restaurant modifié avec succès'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Restaurant non trouvé'
+            )
+        ]
+    )]
     public function edit(int $id, Request $request): JsonResponse
     {
         $restaurant = $this->repository->findOneBy(["id" => $id]);
