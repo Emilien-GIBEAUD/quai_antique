@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use OpenApi\Attributes as OA;
 use App\Entity\User;
 use Symfony\Component\Uid\Uuid;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,6 +25,41 @@ final class SecurityController extends AbstractController
     }
 
     #[route("/registration", name: "registration", methods: "POST")]
+    #[OA\Post(
+        path: '/api/registration',
+        summary: 'Inscription d\'un nouvel utilisateur',
+        requestBody: new OA\RequestBody(
+            required: true,
+            description: 'Données de l\'utilisateur à inscrire',
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'firstName', type: 'string', example: 'prénom'),
+                    new OA\Property(property: 'lastName', type: 'string', example: 'nom'),
+                    new OA\Property(property: 'email', type: 'string', example: 'adresse@email.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'Mdp@13charMIN')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201, 
+                description: 'Utilisateur inscrit avec succès',
+                content: new OA\JsonContent(
+                    type: 'object',
+                    properties: [
+                        new OA\Property(property: 'user', type: 'string', example: 'adresse@email.com'),
+                        new OA\Property(property: 'apiToken', type: 'string', example: '31a023e212f116124a36af14ea0c1c3806eb9378'),
+                        new OA\Property(
+                            property: 'roles', 
+                            type: 'array', 
+                            items: new OA\Items(type: 'string', example: 'ROLE_USER')
+                        )
+                    ]
+                )
+            )
+        ]
+    )]
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         $user = $this->serializer->deserialize($request->getContent(), User::class, "json");
@@ -44,6 +80,39 @@ final class SecurityController extends AbstractController
     }
 
     #[Route('/login', name: 'login', methods: 'POST')]
+    #[OA\Post(
+        path: '/api/login',
+        summary: 'Connexion d\'un utilisateur',
+        requestBody: new OA\RequestBody(
+            required: true,
+            description: 'Données de l\'utilisateur à connecter (le compte doit préalablement avoir été créé avec /api/registration)',
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'username', type: 'string', example: 'adresse@email.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'Mdp@13charMIN')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200, 
+                description: 'Utilisateur connecté',
+                content: new OA\JsonContent(
+                    type: 'object',
+                    properties: [
+                        new OA\Property(property: 'user', type: 'string', example: 'adresse@email.com'),
+                        new OA\Property(property: 'apiToken', type: 'string', example: '31a023e212f116124a36af14ea0c1c3806eb9378'),
+                        new OA\Property(
+                            property: 'roles', 
+                            type: 'array', 
+                            items: new OA\Items(type: 'string', example: 'ROLE_USER')
+                        )
+                    ]
+                )
+            )
+        ]
+    )]
     public function login(#[CurrentUser] ?User $user): JsonResponse
     {
         if ($user === null) {
@@ -58,6 +127,16 @@ final class SecurityController extends AbstractController
     }
     
     #[route("/me", name: "me", methods: "GET")]
+    #[OA\Get(
+        path: '/api/me',
+        summary: 'Récupération du profil de l\'utilisateur connecté',
+        responses: [
+            new OA\Response(
+                response: 200, 
+                description: 'Profil de l\'utilisateur connecté',
+            )
+        ]
+    )]
     public function me(#[CurrentUser] ?User $user): JsonResponse
     {
         if ($user === null) {
@@ -70,6 +149,29 @@ final class SecurityController extends AbstractController
     }
 
     #[route("/edit", name: "edit", methods: "PUT")]
+    #[OA\Put(
+        path: '/api/edit',
+        summary: 'Modification d\'un profil utilisateur (un ou plusieurs champs)',
+        requestBody: new OA\RequestBody(
+            required: true,
+            description: 'Champs éventuels à mettre à jour (supprimer les lignes inutiles, une "," doit être présente à la fin de chaque ligne sauf la dernière). ATTENTION, modification de l\'apiToken si un password est envoyé.',
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'firstName', type: 'string', example: 'prénom'),
+                    new OA\Property(property: 'lastName', type: 'string', example: 'nom'),
+                    new OA\Property(property: 'email', type: 'string', example: 'adresse@email.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'Mdp@13charMIN')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 204, 
+                description: 'Utilisateur modifié (ATTENTION, apiToken modifié si un password a été envoyé)',
+            )
+        ]
+    )]
     public function edit(
                         #[CurrentUser] ?User $user,
                         Request $request,
