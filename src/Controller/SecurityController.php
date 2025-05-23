@@ -10,6 +10,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\{Request, Response, JsonResponse};
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Uid\Uuid;
 
 #[route("api", name: "app_api_")]
 final class SecurityController extends AbstractController
@@ -27,6 +28,7 @@ final class SecurityController extends AbstractController
         $user = $this->serializer->deserialize($request->getContent(), User::class, "json");
         $user->setPassword($passwordHasher->hashPassword($user, $user->getPassword()));
         $user->setCreatedAt(new \DateTimeImmutable());
+        $user->setUuid(Uuid::v7());
 
         $this->manager->persist($user);
         $this->manager->flush();
@@ -43,7 +45,7 @@ final class SecurityController extends AbstractController
     #[Route('/login', name: 'login', methods: 'POST')]
     public function login(#[CurrentUser] ?User $user): JsonResponse
     {
-        if (null === $user) {
+        if ($user === null) {
             return new JsonResponse(['message' => 'Missing credentials'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -54,8 +56,18 @@ final class SecurityController extends AbstractController
         ]);
     }
     
-    // me
-    
+    #[route("/me", name: "me", methods: "GET")]
+    public function me(#[CurrentUser] ?User $user): JsonResponse
+    {
+        if ($user === null) {
+            return new JsonResponse(['message' => 'Missing credentials'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $responseData = $this->serializer->serialize($user, "json");
+        return new JsonResponse($responseData, Response::HTTP_OK, [], true);
+        
+    }
+
 
     // edit
 

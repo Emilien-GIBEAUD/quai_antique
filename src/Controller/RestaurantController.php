@@ -2,17 +2,20 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Restaurant;
+use Symfony\Component\Uid\Uuid;
 use App\Repository\RestaurantRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
 #[route("api/restaurant", name: "app_api_restaurant_")]
@@ -28,12 +31,14 @@ final class RestaurantController extends AbstractController
     }
 
     #[route(name: "new", methods: "POST")]
-    public function new(Request $request): JsonResponse
+    public function new(Request $request, #[CurrentUser] ?User $user): JsonResponse
     {
         $restaurant = $this->serializer->deserialize($request->getContent(), Restaurant::class, "json");
         $restaurant->setCreatedAt(new \DateTimeImmutable());
         $restaurant->setAmOpeningTime(["11h30","13h30"]);   // TO DO TO DO TO DO TO DO TO DO TO DO TO DO
         $restaurant->setPmOpeningTime(["19h30","22h00"]);   // TO DO TO DO TO DO TO DO TO DO TO DO TO DO
+        $restaurant->setUuid(Uuid::v7());
+        $restaurant->setUser($user);
 
         // Tell Doctrine you want to (eventually) save the restaurant (no queries yet)
         $this->manager->persist($restaurant);
