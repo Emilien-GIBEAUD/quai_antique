@@ -187,6 +187,29 @@ final class RestaurantController extends AbstractController
     }
     
     #[route("/{id}", name: "delete", methods: "DELETE")]
+    #[OA\Delete(
+        path: '/api/restaurant/{id}',
+        summary: 'Supprimer un restaurant par son id',
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'id du restaurant à supprimer',
+                schema: new OA\Schema(type: 'integer', example: 1)
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 204,
+                description: 'Restaurant supprimé avec succès'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Restaurant non trouvé'
+            )
+        ]
+    )]
     public function delete(int $id): JsonResponse
     {
         $restaurant = $this->repository->findOneBy(["id" => $id]);
