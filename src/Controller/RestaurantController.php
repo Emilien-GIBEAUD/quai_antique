@@ -46,7 +46,7 @@ final class RestaurantController extends AbstractController
         $this->manager->flush();
 
         // Send on the created page
-        $responseData = $this->serializer->serialize($restaurant, "json");
+        $responseData = $this->serializer->serialize($restaurant, "json", ['groups' => ['restaurant']]);
         $location = $this->urlGenerator->generate(
             "app_api_restaurant_show",
             ["id" => $restaurant->getId()],
@@ -60,7 +60,7 @@ final class RestaurantController extends AbstractController
     {
         $restaurant = $this->repository->findOneBy(["id" => $id]);
         if ($restaurant) {
-            $responseData = $this->serializer->serialize($restaurant, "json");
+            $responseData = $this->serializer->serialize($restaurant, "json", ['groups' => ['restaurant']]);
             return new JsonResponse($responseData, Response::HTTP_OK, [], true);
         }
         return new JsonResponse(null, Response::HTTP_NOT_FOUND);

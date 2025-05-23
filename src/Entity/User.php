@@ -2,13 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -17,48 +18,61 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["restaurant", "user"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(["restaurant", "user"])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Groups(["restaurant", "user"])]
     private array $roles = [];
 
     /**
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Groups(["restaurant", "user"])]
     private ?string $password = null;
 
     #[ORM\Column]
+    #[Groups(["restaurant", "user"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["restaurant", "user"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["restaurant", "user"])]
     private ?string $apiToken;
 
     #[ORM\Column(type: Types::GUID)]
+    #[Groups(["restaurant", "user"])]
     private ?string $uuid = null;
 
     #[ORM\Column(length: 32)]
+    #[Groups(["restaurant", "user"])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 64)]
+    #[Groups(["restaurant", "user"])]
     private ?string $lastName = null;
 
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    #[Groups(["restaurant", "user"])]
     private ?int $guestNumber = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["restaurant", "user"])]
     private ?string $allergy = null;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[Groups(["user"])]
     private ?Restaurant $restaurant = null;
 
     /**
@@ -134,6 +148,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
+        $this->apiToken = bin2hex(random_bytes(20));
 
         return $this;
     }
