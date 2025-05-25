@@ -172,9 +172,7 @@ final class SecurityController extends AbstractController
             )
         ]
     )]
-    public function edit(
-                        #[CurrentUser] ?User $user,
-                        Request $request,
+    public function edit(#[CurrentUser] ?User $user, Request $request,
                         UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         if ($user) {
