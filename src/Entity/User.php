@@ -21,6 +21,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(["restaurant", "user"])]
     private ?int $id = null;
 
+    #[ORM\Column(type: Types::GUID)]
+    #[Groups(["restaurant", "user"])]
+    private ?string $uuid = null;
+
+    #[ORM\Column(length: 32)]
+    #[Groups(["restaurant", "user"])]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 64)]
+    #[Groups(["restaurant", "user"])]
+    private ?string $lastName = null;
+
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    #[Groups(["restaurant", "user"])]
+    private ?int $guestNumber = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["restaurant", "user"])]
+    private ?string $allergy = null;
+
     #[ORM\Column(length: 180)]
     #[Groups(["restaurant", "user"])]
     private ?string $email = null;
@@ -50,26 +70,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     #[Groups(["restaurant", "user"])]
     private ?string $apiToken;
-
-    #[ORM\Column(type: Types::GUID)]
-    #[Groups(["restaurant", "user"])]
-    private ?string $uuid = null;
-
-    #[ORM\Column(length: 32)]
-    #[Groups(["restaurant", "user"])]
-    private ?string $firstName = null;
-
-    #[ORM\Column(length: 64)]
-    #[Groups(["restaurant", "user"])]
-    private ?string $lastName = null;
-
-    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
-    #[Groups(["restaurant", "user"])]
-    private ?int $guestNumber = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["restaurant", "user"])]
-    private ?string $allergy = null;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(["user"])]
