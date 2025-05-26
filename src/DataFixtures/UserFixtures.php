@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use Exception;
+use Faker\Factory;
 use App\Entity\User;
 use Symfony\Component\Uid\Uuid;
 use Doctrine\Persistence\ObjectManager;
@@ -11,17 +12,22 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFixtures extends Fixture
 {
+    public const USER_REFERENCES = "user";
+    public const USER_NB_TUPLES = 20;
+
     public function __construct(private UserPasswordHasherInterface $passwordHasher)
     {
     }
+
     /** @throws Exception */
     public function load(ObjectManager $manager): void
     {
-        for ($i=1; $i <= 10; $i++) {
+        $faker = Factory::create();
+        for ($i=1; $i <= self::USER_NB_TUPLES; $i++) {
             $user = (new User())
             ->setUuid(Uuid::v7())
-            ->setFirstName("prénom$i")
-            ->setLastName("nom$i")
+            ->setFirstName($faker->firstName())
+            ->setLastName($faker->lastName())
             ->setGuestNumber(random_int(2,5))
             ->setEmail("email$i@mail.fr")
             ->setCreatedAt(new \DateTimeImmutable());
@@ -29,7 +35,7 @@ class UserFixtures extends Fixture
             $user->setPassword($this->passwordHasher->hashPassword($user,"Azerty@$i"));
 
             $manager->persist($user);
-            $this->addReference("user$i", $user);
+            $this->addReference(self::USER_REFERENCES . $i, $user);
         }
 
         $manager->flush();

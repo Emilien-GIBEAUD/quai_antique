@@ -10,21 +10,24 @@ use Doctrine\Persistence\ObjectManager;
 
 class PictureFixtures extends Fixture implements DependentFixtureInterface
 {
+    public const PICTURE_REFERENCES = "picture";
+    public const PICTURE_NB_TUPLES = 5 * RestaurantFixtures::RESTAURANT_NB_TUPLES;
+
     /** @throws Exception */
     public function load(ObjectManager $manager): void
     {
-        for ($i=1; $i <= 12; $i++) {
+        for ($i=1; $i <= self::PICTURE_NB_TUPLES; $i++) {
             $picture = (new Picture())
             ->setTitle("Image n°$i")
             ->setSlug("slug-title")
             ->setCreatedAt(new \DateTimeImmutable());
-            if ($i <= 3) {
+            if ($i <= RestaurantFixtures::RESTAURANT_NB_TUPLES) {
                 $picture->setRestaurant($this->getReference(
-                    "restaurant$i",Restaurant::class
+                    RestaurantFixtures::RESTAURANT_REFERENCES . $i,Restaurant::class
                 ));
             } else {
                 $picture->setRestaurant($this->getReference(
-                    "restaurant".random_int(1,3),Restaurant::class
+                    RestaurantFixtures::RESTAURANT_REFERENCES . random_int(1,RestaurantFixtures::RESTAURANT_NB_TUPLES),Restaurant::class
                 ));
             }
 
