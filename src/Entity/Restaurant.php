@@ -18,6 +18,10 @@ class Restaurant
     #[Groups(["restaurant", "user"])]
     private ?int $id = null;
 
+    #[ORM\Column(type: Types::GUID)]
+    #[Groups(["restaurant", "user"])]
+    private ?string $uuid = null;
+
     #[ORM\Column(length: 32)]
     #[Groups(["restaurant", "user"])]
     private ?string $name = null;
@@ -46,6 +50,11 @@ class Restaurant
     #[Groups(["restaurant", "user"])]
     private array $pmOpeningTime = [];
 
+    #[ORM\OneToOne(inversedBy: 'restaurant', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["restaurant"])]
+    private ?User $user = null;
+
     /**
      * @var Collection<int, Picture>
      */
@@ -63,15 +72,6 @@ class Restaurant
      */
     #[ORM\OneToMany(targetEntity: Menu::class, mappedBy: 'restaurant', orphanRemoval: true)]
     private Collection $menus;
-
-    #[ORM\Column(type: Types::GUID)]
-    #[Groups(["restaurant", "user"])]
-    private ?string $uuid = null;
-
-    #[ORM\OneToOne(inversedBy: 'restaurant', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["restaurant"])]
-    private ?User $user = null;
 
     public function __construct()
     {

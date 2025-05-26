@@ -17,7 +17,7 @@ class UserFixtures extends Fixture
     /** @throws Exception */
     public function load(ObjectManager $manager): void
     {
-        for ($i=1; $i < 10; $i++) {
+        for ($i=1; $i <= 10; $i++) {
             $user = (new User())
             ->setUuid(Uuid::v7())
             ->setFirstName("prénom$i")
@@ -29,6 +29,7 @@ class UserFixtures extends Fixture
             $user->setPassword($this->passwordHasher->hashPassword($user,"Azerty@$i"));
 
             $manager->persist($user);
+            $this->addReference("user$i", $user);
         }
 
         $manager->flush();
