@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Restaurant;
 use Exception;
 use Faker\Factory;
 use App\Entity\User;
@@ -33,6 +34,10 @@ class UserFixtures extends Fixture
             ->setCreatedAt(new \DateTimeImmutable());
 
             $user->setPassword($this->passwordHasher->hashPassword($user,"Azerty@$i"));
+
+            if ($i <= RestaurantFixtures::RESTAURANT_NB_TUPLES) {
+                $user->setRoles(["ROLE_ADMIN"]);
+            }
 
             $manager->persist($user);
             $this->addReference(self::USER_REFERENCES . $i, $user);

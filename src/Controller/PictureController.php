@@ -2,21 +2,21 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\{User, Picture};
 use OpenApi\Attributes as OA;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\{Request, Response, JsonResponse};
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Serializer\SerializerInterface;
+use Vich\UploaderBundle\Naming\SlugNamer;
 
 #[route("api/picture", name: "app_api_picture_")]
 final class PictureController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $manager,
-        private SerializerInterface $serializer,
         )
     {
     }
@@ -26,37 +26,51 @@ final class PictureController extends AbstractController
         path: '/api/picture',
         summary: 'Création d\'une nouvelle image',
         requestBody: new OA\RequestBody(
-            required: true,
             description: 'Données de l\'image à créer',
-            // content: new OA\JsonContent(
-            //     type: 'object',
-            //     properties: [
-            //         new OA\Property(property: 'name', type: 'string', example: 'nom du restaurant'),
-            //         new OA\Property(property: 'description', type: 'string', example: 'description du restaurant'),
-            //         new OA\Property(property: 'max_guest', type: 'integer', example: 60)
-            //     ]
-            // )
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['title', 'pictureFile'],
+                    properties: [
+                        new OA\Property(property: 'title', type: 'string', example: 'Titre de l\'image'),
+                        new OA\Property(property: 'pictureFile', type: 'string', format: 'binary'),
+                    ]
+                )
+            )
         ),
         responses: [
             new OA\Response(
-                response: 201, 
+                response: 201,
                 description: 'Image créée avec succès',
-                // content: new OA\JsonContent(
-                //     type: 'object',
-                //     properties: [
-                //     new OA\Property(property: 'id', type: 'integer', example: 1),
-                //     new OA\Property(property: 'name', type: 'string', example: 'nom du restaurant'),
-                //     new OA\Property(property: 'description', type: 'string', example: 'description du restaurant'),
-                //     new OA\Property(property: 'createdAt', type: 'string', format:"date-time"),
-                //     new OA\Property(property: 'max_guest', type: 'integer', example: 60)
-                //     ]
-                // )
+                content: new OA\MediaType(
+                    mediaType: 'application/json',
+                    schema: new OA\Schema(
+                        properties: [
+                            new OA\Property(property: 'message', type: 'string'),
+                        ]
+                    )
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Requête invalide'
             )
         ]
     )]
     public function new(Request $request, #[CurrentUser] ?User $user): JsonResponse
     {
-        return new JsonResponse(null, Response::HTTP_CREATED);
+        $picture = new Picture();
+        $picture->setTitle($request->request->get("title"));
+        $picture->setSlug("à faire");
+        $picture->setCreatedAt(new \DateTimeImmutable());
+        $picture->setRestaurant($user->getRestaurant());
+        $picture->setPicturefile($request->files->get("pictureFile"));
+
+        $this->manager->persist($picture);
+        $this->manager->flush();
+
+        return $this->json(['message' => 'Image créée avec succès'], Response::HTTP_CREATED);
     }
 
     #[Route("/{id}", name: 'showAll', methods: "GET")]
