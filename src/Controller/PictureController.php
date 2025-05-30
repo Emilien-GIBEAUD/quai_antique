@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\{User, Picture};
+use App\Repository\PictureRepository;
 use OpenApi\Attributes as OA;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,6 +18,8 @@ final class PictureController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $manager,
+        private PictureRepository $repository,
+        private SerializerInterface $serializer,
         )
     {
     }
@@ -88,18 +91,8 @@ final class PictureController extends AbstractController
         ],
         responses: [
             new OA\Response(
-                response: 200, 
+                response: 200,
                 description: 'Images trouvées avec succès',
-                // content: new OA\JsonContent(
-                //     type: 'object',
-                //     properties: [
-                //     new OA\Property(property: 'id', type: 'integer', example: 1),
-                //     new OA\Property(property: 'name', type: 'string', example: 'nom du restaurant'),
-                //     new OA\Property(property: 'description', type: 'string', example: 'description du restaurant'),
-                //     new OA\Property(property: 'createdAt', type: 'string', format:"date-time"),
-                //     new OA\Property(property: 'max_guest', type: 'integer', example: 60)
-                //     ]
-                // )
             ),
             new OA\Response(
                 response: 404,
@@ -109,7 +102,9 @@ final class PictureController extends AbstractController
     )]
     public function showAll($id): JsonResponse
     {
-        return new JsonResponse(null, Response::HTTP_OK);
+        $pictures = $this->repository->findBy(["Restaurant" => $id]);
+        $responseData = $this->serializer->serialize($pictures,"json", ['groups' => ['picture']]);
+        return new JsonResponse($responseData, Response::HTTP_OK, [], true);
     }
 
     #[route("/{id}", name: "edit", methods: "PUT")]
@@ -167,17 +162,17 @@ final class PictureController extends AbstractController
         return new JsonResponse(null, Response::HTTP_NOT_FOUND);
     }
     
-    #[route("/{id}", name: "delete", methods: "DELETE")]
+    #[route("/{pictureName}", name: "delete", methods: "DELETE")]
     #[OA\Delete(
-        path: '/api/picture/{id}',
-        summary: 'Supprimer une image par son id',
+        path: '/api/picture/{pictureName}',
+        summary: 'Supprimer une image par son nom de fichier',
         parameters: [
             new OA\Parameter(
-                name: 'id',
+                name: 'pictureName',
                 in: 'path',
                 required: true,
-                description: 'id de l\'image à supprimer',
-                schema: new OA\Schema(type: 'integer', example: 1)
+                description: 'nom de fichier de l\'image à supprimer',
+                schema: new OA\Schema(type: 'string', example: "fichier_16546846616561.png")
             )
         ],
         responses: [
@@ -191,13 +186,13 @@ final class PictureController extends AbstractController
             )
         ]
     )]
-    public function delete(int $id): JsonResponse
+    public function delete(string $pictureName): JsonResponse
     {
         // TO UPDATE TO UPDATE TO UPDATE TO UPDATE TO UPDATE
-        $restaurant = $this->repository->findOneBy(["id" => $id]);
+        $picture = $this->repository->findOneBy(["pictureName" => $pictureName]);
         
-        if ($restaurant) {
-            $this->manager->remove($restaurant);
+        if ($picture) {
+            $this->manager->remove($picture);
             $this->manager->flush();
             return new JsonResponse(null, Response::HTTP_NO_CONTENT);
         }

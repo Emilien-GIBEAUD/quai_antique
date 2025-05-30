@@ -15,39 +15,39 @@ class Restaurant
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::GUID)]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private ?string $uuid = null;
 
     #[ORM\Column(length: 32)]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private ?int $maxGuest = null;
 
     #[ORM\Column]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(type: Types::ARRAY)]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private array $amOpeningTime = [];
 
     #[ORM\Column(type: Types::ARRAY)]
-    #[Groups(["restaurant", "user"])]
+    #[Groups(["restaurant", "user", "picture"])]
     private array $pmOpeningTime = [];
 
     #[ORM\OneToOne(inversedBy: 'restaurant', cascade: ['persist', 'remove'])]
@@ -59,6 +59,7 @@ class Restaurant
      * @var Collection<int, Picture>
      */
     #[ORM\OneToMany(targetEntity: Picture::class, mappedBy: 'Restaurant', orphanRemoval: true)]
+    #[Groups(["restaurant"])]
     private Collection $pictures;
 
     /**
