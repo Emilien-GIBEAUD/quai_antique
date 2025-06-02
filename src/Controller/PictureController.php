@@ -68,6 +68,7 @@ final class PictureController extends AbstractController
         $picture->setSlug("à faire");
         $picture->setCreatedAt(new \DateTimeImmutable());
         $picture->setRestaurant($user->getRestaurant());
+        // TO DO SECURISER LE FICHIER TO DO SECURISER LE FICHIER TO DO SECURISER LE FICHIER
         $picture->setPicturefile($request->files->get("pictureFile"));
 
         $this->manager->persist($picture);
@@ -107,30 +108,31 @@ final class PictureController extends AbstractController
         return new JsonResponse($responseData, Response::HTTP_OK, [], true);
     }
 
-    #[route("/{id}", name: "edit", methods: "PUT")]
-    #[OA\Put(
-        path: '/api/picture/{id}',
-        summary: 'Modifier une image par son id',
+    #[route("/edit/{pictureName}", name: "edit", methods: "POST")]
+    #[OA\Post(
+        path: '/api/picture/edit/{pictureName}',
+        summary: 'Modifier une image par son nom de fichier',
         parameters: [
             new OA\Parameter(
-                name: 'id',
+                name: 'pictureName',
                 in: 'path',
                 required: true,
-                description: 'id de l\'image à modifier',
-                schema: new OA\Schema(type: 'integer', example: 1)
+                description: 'nom de fichier de l\'image à modifier',
+                schema: new OA\Schema(type: 'string', example: "fichier_16546846616561.png")
             )
         ],
         requestBody: new OA\RequestBody(
+            description: 'Données éventuelles de l\'image à modifier (un champ au minimum doit être saisi).',
             required: true,
-            description: 'Données éventuelles de l\'image à modifier (supprimer les lignes inutiles, une "," doit être présente à la fin de chaque ligne sauf la dernière).',
-            // content: new OA\JsonContent(
-            //     type: 'object',
-            //     properties: [
-            //         new OA\Property(property: 'name', type: 'string', example: 'nom du restaurant'),
-            //         new OA\Property(property: 'description', type: 'string', example: 'description du restaurant'),
-            //         new OA\Property(property: 'max_guest', type: 'integer', example: 60)
-            //     ]
-            // )
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: 'title', type: 'string', example: 'Titre de l\'image'),
+                        new OA\Property(property: 'pictureFile', type: 'string', format: 'binary'),
+                    ]
+                )
+            )
         ),
         responses: [
             new OA\Response(
@@ -138,26 +140,36 @@ final class PictureController extends AbstractController
                 description: 'Image modifiée avec succès'
             ),
             new OA\Response(
+                response: 400,
+                description: 'Aucun champ saisi'
+            ),
+            new OA\Response(
                 response: 404,
                 description: 'Image non trouvée'
             )
         ]
     )]
-    public function edit(int $id, Request $request): JsonResponse
+    public function edit(string $pictureName, Request $request, #[CurrentUser] ?User $user): JsonResponse
     {
-        // TO UPDATE TO UPDATE TO UPDATE TO UPDATE TO UPDATE
-        $restaurant = $this->repository->findOneBy(["id" => $id]);
-        
-        if ($restaurant) {
-            $restaurant = $this->serializer->deserialize(
-                $request->getContent(),
-                Restaurant::class,
-                "json",
-                [AbstractNormalizer::OBJECT_TO_POPULATE => $restaurant]
-            );
-            $restaurant->setUpdatedAt(new \DateTimeImmutable());
-            $this->manager->flush();
-            return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        $picture = $this->repository->findOneBy(["pictureName" => $pictureName]);
+
+        if ($picture) {
+            $title = $request->request->get("title");
+            // TO DO SECURISER LE FICHIER TO DO SECURISER LE FICHIER TO DO SECURISER LE FICHIER
+            // TO DO RELIER A USER RELIER A USER RELIER A USER RELIER A USER RELIER A USER
+            $pictureFile = $request->files->get("pictureFile");
+            if ($title !== "" || $pictureFile !== null) {
+                if ($title !== "") {
+                    $picture->setTitle($title);
+                }
+                if ($pictureFile !== null) {
+                    $picture->setPictureFile($pictureFile);
+                }
+                $picture->setUpdatedAt(new \DateTimeImmutable());
+                $this->manager->flush();
+                return $this->json(['message' => 'Modification réalisée avec succès'], Response::HTTP_OK);
+            }
+            return new JsonResponse(null, Response::HTTP_BAD_REQUEST);
         }
         return new JsonResponse(null, Response::HTTP_NOT_FOUND);
     }
@@ -188,7 +200,6 @@ final class PictureController extends AbstractController
     )]
     public function delete(string $pictureName): JsonResponse
     {
-        // TO UPDATE TO UPDATE TO UPDATE TO UPDATE TO UPDATE
         $picture = $this->repository->findOneBy(["pictureName" => $pictureName]);
         
         if ($picture) {
