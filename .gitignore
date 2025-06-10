@@ -15,3 +15,7 @@
 ###< phpunit/phpunit ###
 
 /public/uploads/pictures/*
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
