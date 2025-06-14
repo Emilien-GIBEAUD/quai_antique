@@ -11,6 +11,6 @@ class DefaultController extends AbstractController
     #[Route("/")]
     public function home():Response
     {
-        return new Response("Page home !");
+        return new Response("Page home ! /api/doc/  : accès à la doc de l'API.");
     }
 }

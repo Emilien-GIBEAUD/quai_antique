@@ -1,21 +1,18 @@
 services:
   php:
-    image: ${IMAGES_PREFIX:-}app-php
+    image: ${IMAGES_PREFIX:-}quai_antique_back
     restart: unless-stopped
-    # env_file:
-    # - .env.local
     environment:
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
-      # MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-      # MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM
-      # DATABASE_URL: mysql://${MARIADB_USER}:${MARIADB_PASSWORD}@database:3306/${MARIADB_DATABASE}?serverVersion=${MARIADB_VERSION}-MariaDB&charset=utf8mb4
-      DATABASE_URL: mysql://test:NuqlgPcwP1CqmmxW@database:3306/sf_quaiantique?serverVersion=11.5.2-MariaDB&charset=utf8mb4
+      DATABASE_URL: mysql://${MARIADB_USER}:${MARIADB_PASSWORD}@database:3306/${MARIADB_DATABASE}?serverVersion=${MARIADB_VERSION}-MariaDB&charset=utf8mb4
 
       # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
-      # MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
-      # MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
-      # MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+      MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
+      MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
+      MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       # The two next lines can be removed after initial installation
       SYMFONY_VERSION: ${SYMFONY_VERSION:-}
       STABILITY: ${STABILITY:-stable}
@@ -42,15 +39,13 @@ services:
 
 ###> doctrine/doctrine-bundle ###
   database:
-    image: mariadb:11.5.2
-    # env_file:
-    # - .env.local
+    image: mariadb:${MARIADB_VERSION}
     environment:
-      MARIADB_DATABASE: sf_quaiantique
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
       # You should definitely change the password in production
       MARIADB_RANDOM_ROOT_PASSWORD: "true"
-      MARIADB_PASSWORD: NuqlgPcwP1CqmmxW
-      MARIADB_USER: test
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_USER: ${MARIADB_USER}
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 5s
@@ -61,6 +56,18 @@ services:
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/mysql:rw
 ###< doctrine/doctrine-bundle ###
+
+  phpmyadmin:
+    image: phpmyadmin:5.2.2
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: ${MARIADB_USER}
+      PMA_PASSWORD: ${MARIADB_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - database
 
 volumes:
   caddy_data:
